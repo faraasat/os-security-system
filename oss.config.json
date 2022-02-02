@@ -1,5 +1,5 @@
 {
-    "log_path": "_log",
+    "log_path": "_logs",
     "verbosity": 1,
     "env": "test"
 }
