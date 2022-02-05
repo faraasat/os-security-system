@@ -16,21 +16,16 @@ filename = None
 det = dict()
 
 def rmfile():
-    global button_remove
     os.remove(filename)
     button_remove.config(state = DISABLED)
     ut.check_verbosity(f"{ut.bcolors.OKGREEN}\tFile Removed Successfully!!{ut.bcolors.ENDC}\n")
 
+def comp_hashes(fname):
+    return [scan_sha256.SCANSHA256(fname).get_stats(), scan_md5.SCANMD5(fname).get_stats(), scan_sha1.SCANSHA1(fname).get_stats()]
+
 def browseFiles():
     global is_virus
     global filename
-    global button_remove
-    global label_virus
-    global label_sha256
-    global label_md5
-    global label_sha1
-    global opened_file
-    global label_status
     button_remove.config(state = DISABLED)
     fname = filedialog.askopenfilename(initialdir = "/", title = "Select a File",  filetypes = (("Text files",  "*.*"),  ("all files", "*.*"))) 
     ut.check_verbosity(f"{ut.bcolors.OKBLUE}\t*  File Selected is:{ut.bcolors.ENDC}")
@@ -42,16 +37,13 @@ def browseFiles():
     label_sha1.configure(text = "SHA1 Hash: N/A")
     opened_file.configure(text="Scanning File: " + fname)
     label_status.configure(text="Status: Scanning...")
-    ss256 = scan_sha256.SCANSHA256(fname).get_stats()
-    ssm5 = scan_md5.SCANMD5(fname).get_stats()
-    ss1 = scan_sha1.SCANSHA1(fname).get_stats()
-    res = [ss256, ssm5, ss1]
+    res = comp_hashes(fname)
     for i in res:
         if i["is_virus"] == True:
             is_virus = True
-    label_sha256.configure(text="SHA256 Hash: " + ss256["hash"])
-    label_md5.configure(text="MD5 Hash: " + ssm5["hash"])
-    label_sha1.configure(text="SHA1 Hash: " + ss1["hash"])
+    label_sha256.configure(text="SHA256 Hash: " + res[0]["hash"])
+    label_md5.configure(text="MD5 Hash: " + res[1]["hash"])
+    label_sha1.configure(text="SHA1 Hash: " + res[2]["hash"])
     if is_virus:
         ut.check_verbosity(f"{ut.bcolors.FAIL}\tVirus Found{ut.bcolors.ENDC}\n")
         label_virus.configure(text = "Virus: Found")
@@ -59,7 +51,7 @@ def browseFiles():
     else:
         ut.check_verbosity(f"{ut.bcolors.OKGREEN}\tVirus Not Found{ut.bcolors.ENDC}\n")
         label_virus.configure(text = "Virus: Not Found")
-    det = {"SHA256": ss256["hash"], "MD5": ssm5["hash"], "SHA1": ss1["hash"], "Virus": is_virus}
+    det = {"SHA256": res[0]["hash"], "MD5": res[1]["hash"], "SHA1": res[2]["hash"], "Virus": is_virus}
     is_virus = False
     label_status.configure(text="Status: Idle")
     write_logs(det)
